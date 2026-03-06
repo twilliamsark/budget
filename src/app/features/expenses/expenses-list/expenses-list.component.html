@@ -1,0 +1,113 @@
+<div class="expenses-container">
+  <div class="filters">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="clearAllFilters()"
+      [disabled]="!hasActiveFilters()"
+      class="clear-all-btn"
+    >
+      Clear filters
+    </button>
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search</mat-label>
+      <input
+        matInput
+        type="text"
+        [value]="searchValue()"
+        (input)="onSearchChange($any($event.target).value)"
+        placeholder="Search by payee, category, or account..."
+        aria-label="Search expenses"
+      />
+      @if (searchValue()) {
+        <button mat-icon-button matSuffix type="button" (click)="clearSearch()" aria-label="Clear search">
+          <span class="clear-icon" aria-hidden="true">×</span>
+        </button>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Category</mat-label>
+      <input
+        matInput
+        type="text"
+        [value]="categoryFilter() ?? ''"
+        (input)="onCategoryFilterChange($any($event.target).value)"
+        [matAutocomplete]="categoryAuto"
+        placeholder="All categories"
+        aria-label="Filter by category"
+      />
+      @if (categoryFilter()) {
+        <button mat-icon-button matSuffix type="button" (click)="clearCategoryFilter()" aria-label="Clear category filter">
+          <span class="clear-icon" aria-hidden="true">×</span>
+        </button>
+      }
+      <mat-autocomplete #categoryAuto="matAutocomplete" (optionSelected)="onCategoryFilterChange($event.option.value)">
+        @for (cat of categories(); track cat) {
+          <mat-option [value]="cat">{{ cat }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Account</mat-label>
+      <input
+        matInput
+        type="text"
+        [value]="accountFilter() ?? ''"
+        (input)="onAccountFilterChange($any($event.target).value)"
+        [matAutocomplete]="accountAuto"
+        placeholder="All accounts"
+        aria-label="Filter by account"
+      />
+      @if (accountFilter()) {
+        <button mat-icon-button matSuffix type="button" (click)="clearAccountFilter()" aria-label="Clear account filter">
+          <span class="clear-icon" aria-hidden="true">×</span>
+        </button>
+      }
+      <mat-autocomplete #accountAuto="matAutocomplete" (optionSelected)="onAccountFilterChange($event.option.value)">
+        @for (acc of accounts(); track acc) {
+          <mat-option [value]="acc">{{ acc }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="dataSource" matSort>
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+        <td mat-cell *matCellDef="let row">{{ row.date }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="to">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Payee</th>
+        <td mat-cell *matCellDef="let row">{{ row.to }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+        <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+        <td mat-cell *matCellDef="let row">{{ formatAmount(row.amount) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="account">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Account</th>
+        <td mat-cell *matCellDef="let row">{{ row.account }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+          No expenses found.
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

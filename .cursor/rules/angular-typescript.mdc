@@ -1,0 +1,37 @@
+---
+description: Angular and TypeScript best practices for components, templates, services, and accessibility
+alwaysApply: true
+---
+
+# Angular & TypeScript Standards
+
+## TypeScript
+- Use strict type checking; prefer type inference when obvious
+- Avoid `any`; use `unknown` when type is uncertain
+
+## Angular
+- Standalone components (default in v20+; do NOT set `standalone: true`)
+- Use signals for state; `computed()` for derived state
+- Lazy load feature routes
+- Use `host` object instead of `@HostBinding` / `@HostListener`
+- Use `NgOptimizedImage` for static images (not inline base64)
+
+## Components
+- Small, single-responsibility; use `input()` and `output()` (not decorators)
+- `changeDetection: ChangeDetectionStrategy.OnPush`
+- Reactive forms over template-driven
+- Use `class` and `style` bindings instead of `ngClass` / `ngStyle`
+- External templates/styles: paths relative to component TS file
+
+## State
+- Signals for local state; use `update` or `set`, never `mutate`
+
+## Templates
+- Native control flow: `@if`, `@for`, `@switch` (not `*ngIf`, `*ngFor`, `*ngSwitch`)
+- Async pipe for observables; no globals or arrow functions in templates
+
+## Services
+- Single responsibility; `providedIn: 'root'`; use `inject()` not constructor injection
+
+## Accessibility
+- Must pass AXE checks and WCAG AA (focus management, color contrast, ARIA)
