@@ -1,0 +1,50 @@
+<div class="ledger-header">
+  <h1>Ledger</h1>
+  <mat-form-field appearance="outline" class="account-select">
+    <mat-label>Account</mat-label>
+    <mat-select
+      [value]="selectedAccountId()"
+      (valueChange)="onAccountChange($event)"
+      placeholder="Select account"
+    >
+      @for (acc of accounts(); track acc.id) {
+        <mat-option [value]="acc.id">{{ acc.id }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+@if (selectedAccountId()) {
+  <p class="balance-line">
+    <strong>Current balance:</strong> {{ formatAmount(currentBalance()) }}
+  </p>
+  <table mat-table [dataSource]="ledgerRows()" class="ledger-table">
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let row">{{ row.date }}</td>
+    </ng-container>
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+    </ng-container>
+    <ng-container matColumnDef="debit">
+      <th mat-header-cell *matHeaderCellDef>Debit</th>
+      <td mat-cell *matCellDef="let row">{{ formatAmount(row.debit) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="credit">
+      <th mat-header-cell *matHeaderCellDef>Credit</th>
+      <td mat-cell *matCellDef="let row">{{ formatAmount(row.credit) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="runningBalance">
+      <th mat-header-cell *matHeaderCellDef>Balance</th>
+      <td mat-cell *matCellDef="let row">{{ formatAmount(row.runningBalance) }}</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  @if (ledgerRows().length === 0) {
+    <p class="empty">No transactions for this account.</p>
+  }
+} @else {
+  <p class="empty">Select an account to view its ledger.</p>
+}

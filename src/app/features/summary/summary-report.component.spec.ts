@@ -40,25 +40,21 @@ describe('SummaryReportComponent', () => {
 
   it('should filter expenses by date range and show category/account totals', () => {
     const expenseService = TestBed.inject(ExpenseService);
-    storage.setExpenses([
-      {
-        id: '1',
-        date: '2/1/26',
-        to: 'Payee',
-        category: 'Food',
-        amount: -50,
-        account: 'CC-1',
-        from: 'Todd W',
-      },
-      {
-        id: '2',
-        date: '2/15/26',
-        to: 'Other',
-        category: 'Medical',
-        amount: -100,
-        account: 'Chk-1',
-        from: 'Todd W',
-      },
+    storage.setAccounts([
+      { id: 'Food', type: 'expense' },
+      { id: 'Medical', type: 'expense' },
+      { id: 'CC-1', type: 'liability' },
+      { id: 'Chk-1', type: 'asset' },
+    ]);
+    storage.setTransactions([
+      { id: '1', date: '02/01/26', type: 'expense', to: 'Payee', from: 'Todd W' },
+      { id: '2', date: '02/15/26', type: 'expense', to: 'Other', from: 'Todd W' },
+    ]);
+    storage.setJournalLines([
+      { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+      { id: 'l3', transactionId: '2', accountId: 'Medical', debit: 100, credit: 0 },
+      { id: 'l4', transactionId: '2', accountId: 'Chk-1', debit: 0, credit: 100 },
     ]);
     expenseService.loadFromStorage();
     component.dateRange.setStart('2026-02-01');

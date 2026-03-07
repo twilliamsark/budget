@@ -1,0 +1,23 @@
+.ledger-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.account-select {
+  min-width: 200px;
+}
+
+.balance-line {
+  margin-bottom: 1rem;
+}
+
+.ledger-table {
+  width: 100%;
+}
+
+.empty {
+  color: var(--mat-sys-outline, #666);
+  margin-top: 1rem;
+}

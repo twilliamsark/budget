@@ -12,6 +12,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/summary/summary-report.component').then((m) => m.SummaryReportComponent),
   },
+  {
+    path: 'ledger',
+    loadComponent: () =>
+      import('./features/ledger/ledger.component').then((m) => m.LedgerComponent),
+  },
+  {
+    path: 'transfers',
+    loadComponent: () =>
+      import('./features/transfers/transfers.component').then((m) => m.TransfersComponent),
+  },
   { path: 'summary/category', redirectTo: 'summary', pathMatch: 'full' },
   { path: 'summary/account', redirectTo: 'summary', pathMatch: 'full' },
 ];
