@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { parse } from 'csv-parse/browser/esm/sync';
+import { formatToMMDDYY } from '../utils/date-range';
 import { Expense, Category, Account } from '../models';
 
 export interface ImportResult {
@@ -50,7 +51,7 @@ export class CsvImportService {
     const expenses: Expense[] = [];
 
     for (const row of rows) {
-      const date = row.Date?.trim() ?? '';
+      const rawDate = row.Date?.trim() ?? '';
       const to = row.To?.trim() ?? '';
       const category = row.Category?.trim() ?? '';
       const amountStr = row.Amount?.trim() ?? '';
@@ -70,6 +71,7 @@ export class CsvImportService {
       if (account) accountSet.add(account);
 
       const from = (row.From?.trim() || DEFAULT_FROM);
+      const date = formatToMMDDYY(rawDate);
 
       expenses.push({
         id: crypto.randomUUID(),
@@ -117,7 +119,7 @@ export class CsvImportService {
     const result: ParsedExpenseRow[] = [];
 
     for (const row of rows) {
-      const date = row.Date?.trim() ?? '';
+      const rawDate = row.Date?.trim() ?? '';
       const to = row.To?.trim() ?? '';
       const category = row.Category?.trim() ?? '';
       const amountStr = row.Amount?.trim() ?? '';
@@ -129,6 +131,7 @@ export class CsvImportService {
       if (Number.isNaN(amount)) continue;
 
       const from = row.From?.trim() || DEFAULT_FROM;
+      const date = formatToMMDDYY(rawDate);
 
       result.push({ date, to, from, category, amount, account });
     }

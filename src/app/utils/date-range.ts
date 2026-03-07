@@ -55,3 +55,32 @@ export function fromInputDateString(s: string): Date | null {
   const d = new Date(s);
   return Number.isNaN(d.getTime()) ? null : startOfDay(d);
 }
+
+/**
+ * Parse a date string (m/d/yy, mm/dd/yy, or yyyy-mm-dd) and return normalized mm/dd/yy.
+ * Returns the original string if unparseable.
+ * ISO yyyy-mm-dd is parsed as local date to avoid timezone shifts.
+ */
+export function formatToMMDDYY(dateStr: string): string {
+  const s = dateStr?.trim() ?? '';
+  if (!s) return s;
+  let d: Date | null = parseExpenseDate(s);
+  if (!d && /^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y, m, day] = s.slice(0, 10).split('-').map(Number);
+    if (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(day)) {
+      d = new Date(y, m - 1, day);
+      if (Number.isNaN(d.getTime())) d = null;
+    }
+  }
+  if (!d) return dateStr;
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${month}/${day}/${yy}`;
+}
+
+/** Sort key for expense date string (chronological). Use in table sort. */
+export function expenseDateSortKey(dateStr: string): number {
+  const d = parseExpenseDate(dateStr);
+  return d ? d.getTime() : 0;
+}

@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { expenseDateSortKey } from '../../../utils/date-range';
 import { Expense } from '../../../models';
 
 @Component({
@@ -48,6 +49,12 @@ export class ExpensesListComponent {
   private readonly sort = viewChild(MatSort);
 
   constructor() {
+    this.dataSource.sortingDataAccessor = (row, prop) => {
+      if (prop === 'date') return expenseDateSortKey(row.date);
+      if (prop === 'amount') return row.amount;
+      const value = row[prop as keyof Expense];
+      return value != null ? String(value) : '';
+    };
     effect(() => {
       this.dataSource.data = this.filteredExpenses();
       const s = this.sort();
