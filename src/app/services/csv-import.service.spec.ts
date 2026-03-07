@@ -70,7 +70,7 @@ describe('CsvImportService', () => {
       const rows = await service.parseCsvToExpenseRows(csvToFile(csv));
       expect(rows.length).toBe(1);
       expect(rows[0]).toEqual({
-        date: '1/21/26',
+        date: '01/21/26',
         to: 'Test Payee',
         from: 'Todd W',
         category: 'Food',
