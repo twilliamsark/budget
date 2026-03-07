@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Expense } from '../../models';
+import { CsvExportService } from '../../services/csv-export.service';
 import { ExpenseService } from '../../services/expense.service';
 import {
   ExpenseFormDialogComponent,
@@ -33,6 +34,9 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
           (change)="onFileSelected($event)"
         />
         @if (expenseService.hasData()) {
+          <button mat-raised-button (click)="exportCsv()" aria-label="Export CSV">
+            Export CSV
+          </button>
           <button mat-raised-button (click)="openAddDialog()" aria-label="Add expense">
             Add expense
           </button>
@@ -44,9 +48,11 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
     </div>
     @if (expenseService.hasData()) {
       <app-expenses-list
+        #expensesList
         [expenses]="expenseService.expenses()"
         (editExpense)="openEditDialog($event)"
         (deleteExpense)="confirmDelete($event)"
+        (markNotDuplicate)="onMarkNotDuplicate($event)"
       />
     } @else if (expenseService.error()) {
       <p class="error">Error: {{ expenseService.error() }}</p>
@@ -59,6 +65,16 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
 export class ExpensesComponent {
   readonly expenseService = inject(ExpenseService);
   private readonly dialog = inject(MatDialog);
+  private readonly csvExport = inject(CsvExportService);
+  private readonly expensesListRef = viewChild<ExpensesListComponent>('expensesList');
+
+  exportCsv(): void {
+    const list = this.expensesListRef();
+    if (list) {
+      const toExport = list.getFilteredExpenses();
+      this.csvExport.exportToCsv(toExport);
+    }
+  }
 
   openAddDialog(): void {
     const data: ExpenseFormDialogData = {
@@ -99,6 +115,10 @@ export class ExpensesComponent {
     if (confirm(`Delete expense "${expense.to}" (${expense.date})?`)) {
       this.expenseService.deleteExpense(expense.id);
     }
+  }
+
+  onMarkNotDuplicate(expense: Expense): void {
+    this.expenseService.markNotDuplicate(expense);
   }
 
   onFileSelected(event: Event): void {

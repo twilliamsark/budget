@@ -62,4 +62,42 @@ describe('CsvImportService', () => {
     const headerOnlyResult = await service.importCsv(csvToFile('Date,To\n'));
     expect(headerOnlyResult.expenses).toEqual([]);
   });
+
+  describe('parseCsvToExpenseRows', () => {
+    it('should parse CSV to rows without id', async () => {
+      const csv = `Date,To,From,Category,Amount,Account
+1/21/26,Test Payee,Todd W,Food,-$50.00,CC-5792`;
+      const rows = await service.parseCsvToExpenseRows(csvToFile(csv));
+      expect(rows.length).toBe(1);
+      expect(rows[0]).toEqual({
+        date: '1/21/26',
+        to: 'Test Payee',
+        from: 'Todd W',
+        category: 'Food',
+        amount: -50,
+        account: 'CC-5792',
+      });
+      expect((rows[0] as { id?: string }).id).toBeUndefined();
+    });
+
+    it('should default From when missing', async () => {
+      const csv = `Date,To,Category,Amount,Account
+1/21/26,Payee,Food,-$10.00,CC-1`;
+      const rows = await service.parseCsvToExpenseRows(csvToFile(csv));
+      expect(rows[0].from).toBe('Todd W');
+    });
+
+    it('should skip empty and summary rows', async () => {
+      const csv = `Date,To,Category,Amount,Account
+1/21/26,A,Food,-$1.00,CC-1
+,,,-$1.00,`;
+      const rows = await service.parseCsvToExpenseRows(csvToFile(csv));
+      expect(rows.length).toBe(1);
+    });
+
+    it('should return empty array for empty file', async () => {
+      const rows = await service.parseCsvToExpenseRows(csvToFile(''));
+      expect(rows).toEqual([]);
+    });
+  });
 });

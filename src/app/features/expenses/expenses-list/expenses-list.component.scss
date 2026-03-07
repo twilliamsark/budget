@@ -32,3 +32,9 @@
 .table-wrapper {
   overflow-x: auto;
 }
+
+.possible-duplicate-label {
+  margin-right: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--mat-sys-error, #b3261e);
+}

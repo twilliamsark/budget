@@ -8,6 +8,16 @@ export interface ImportResult {
   accounts: Account[];
 }
 
+/** Parsed row from CSV without id or possibleDuplicate (for merge import). */
+export interface ParsedExpenseRow {
+  date: string;
+  to: string;
+  from: string;
+  category: string;
+  amount: number;
+  account: string;
+}
+
 const DEFAULT_FROM = 'Todd W';
 
 interface CsvRow {
@@ -90,5 +100,39 @@ export class CsvImportService {
   private parseAmount(value: string): number {
     const cleaned = value.replace(/[$,]/g, '').trim();
     return parseFloat(cleaned) || 0;
+  }
+
+  /**
+   * Parses a CSV file to expense rows (no id). Used for merge import.
+   * Columns: Date, To, From (optional), Category, Amount, Account.
+   */
+  async parseCsvToExpenseRows(file: File): Promise<ParsedExpenseRow[]> {
+    const csvText = await this.readFileAsText(file);
+    const rows = parse<CsvRow>(csvText, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    const result: ParsedExpenseRow[] = [];
+
+    for (const row of rows) {
+      const date = row.Date?.trim() ?? '';
+      const to = row.To?.trim() ?? '';
+      const category = row.Category?.trim() ?? '';
+      const amountStr = row.Amount?.trim() ?? '';
+      const account = row.Account?.trim() ?? '';
+
+      if (!to && !category && !account) continue;
+
+      const amount = this.parseAmount(amountStr);
+      if (Number.isNaN(amount)) continue;
+
+      const from = row.From?.trim() || DEFAULT_FROM;
+
+      result.push({ date, to, from, category, amount, account });
+    }
+
+    return result;
   }
 }

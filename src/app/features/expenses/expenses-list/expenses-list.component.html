@@ -131,6 +131,10 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let row">
+          @if (row.possibleDuplicate) {
+            <span class="possible-duplicate-label" title="Added from import with same date/payee/from but different category or amount">Possible duplicate</span>
+            <button mat-button (click)="onMarkNotDuplicate(row)" aria-label="Mark as not duplicate">Not a duplicate</button>
+          }
           <button mat-button (click)="onEdit(row)" aria-label="Edit expense">Edit</button>
           <button mat-button color="warn" (click)="onDelete(row)" aria-label="Delete expense">Delete</button>
         </td>

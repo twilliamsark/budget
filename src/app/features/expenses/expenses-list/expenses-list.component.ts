@@ -35,6 +35,7 @@ export class ExpensesListComponent {
 
   readonly editExpense = output<Expense>();
   readonly deleteExpense = output<Expense>();
+  readonly markNotDuplicate = output<Expense>();
 
   readonly searchValue = signal('');
   readonly categoryFilter = signal<string | null>(null);
@@ -157,5 +158,14 @@ export class ExpensesListComponent {
 
   onDelete(row: Expense): void {
     this.deleteExpense.emit(row);
+  }
+
+  onMarkNotDuplicate(row: Expense): void {
+    this.markNotDuplicate.emit(row);
+  }
+
+  /** Returns the currently displayed (filtered and sorted) expenses for export. */
+  getFilteredExpenses(): Expense[] {
+    return this.dataSource.data ?? [];
   }
 }

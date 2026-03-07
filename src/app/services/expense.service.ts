@@ -36,17 +36,63 @@ export class ExpenseService {
   }
 
   /**
-   * Imports expenses from a CSV file.
+   * Imports expenses from a CSV file. Merges with existing data:
+   * - Exact match (same date, to, from, category, amount, account) → skipped.
+   * - Same date/to/from but different category or amount → added with possibleDuplicate: true.
+   * - Otherwise → added as new.
    */
   async importCsv(file: File): Promise<void> {
     this.loadError.set(null);
     try {
-      const result = await this.csvImport.importCsv(file);
-      this.saveAll(result.expenses, result.categories, result.accounts);
+      const rows = await this.csvImport.parseCsvToExpenseRows(file);
+      const existing = this.expensesSignal();
+      const categorySet = new Set(this.categoriesSignal().map((c) => c.id));
+      const accountSet = new Set(this.accountsSignal().map((a) => a.id));
+
+      const toAdd: Expense[] = [];
+
+      for (const row of rows) {
+        const exactMatch = existing.some(
+          (e) =>
+            e.date === row.date &&
+            e.to === row.to &&
+            e.from === row.from &&
+            e.category === row.category &&
+            this.amountEqual(e.amount, row.amount) &&
+            e.account === row.account
+        );
+        if (exactMatch) continue;
+
+        const possibleDup = existing.some(
+          (e) =>
+            e.date === row.date &&
+            e.to === row.to &&
+            e.from === row.from &&
+            (e.category !== row.category || !this.amountEqual(e.amount, row.amount))
+        );
+
+        categorySet.add(row.category);
+        accountSet.add(row.account);
+
+        toAdd.push({
+          id: crypto.randomUUID(),
+          ...row,
+          possibleDuplicate: possibleDup,
+        });
+      }
+
+      const categories = [...categorySet].sort().map((id) => ({ id }));
+      const accounts = [...accountSet].sort().map((id) => ({ id }));
+      const expenses = [...existing, ...toAdd];
+      this.saveAll(expenses, categories, accounts);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to parse CSV';
       this.loadError.set(message);
     }
+  }
+
+  private amountEqual(a: number, b: number): boolean {
+    return Math.abs(a - b) < 1e-6;
   }
 
   loadFromStorage(): void {
@@ -78,14 +124,23 @@ export class ExpenseService {
   }
 
   /**
-   * Updates an expense by id and persists. Ensures category/account exist in lists.
+   * Updates an expense by id and persists. Clears possibleDuplicate so edit marks as not duplicate.
    */
   updateExpense(expense: Expense): void {
     this.loadError.set(null);
-    const expenses = this.expensesSignal().map((e) => (e.id === expense.id ? expense : e));
-    const categories = this.ensureCategory(this.categoriesSignal(), expense.category);
-    const accounts = this.ensureAccount(this.accountsSignal(), expense.account);
+    const updated = { ...expense, possibleDuplicate: false };
+    const expenses = this.expensesSignal().map((e) => (e.id === expense.id ? updated : e));
+    const categories = this.ensureCategory(this.categoriesSignal(), updated.category);
+    const accounts = this.ensureAccount(this.accountsSignal(), updated.account);
     this.saveAll(expenses, categories, accounts);
+  }
+
+  /**
+   * Marks an expense as not a duplicate (clears possibleDuplicate flag).
+   */
+  markNotDuplicate(expense: Expense): void {
+    if (!expense.possibleDuplicate) return;
+    this.updateExpense({ ...expense, possibleDuplicate: false });
   }
 
   /**

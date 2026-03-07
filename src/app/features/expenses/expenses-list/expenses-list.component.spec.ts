@@ -86,4 +86,19 @@ describe('ExpensesListComponent', () => {
   it('should format amount as currency', () => {
     expect(component.formatAmount(-50)).toBe('-$50.00');
   });
+
+  it('getFilteredExpenses should return current dataSource data', () => {
+    fixture.detectChanges();
+    const data = component.getFilteredExpenses();
+    expect(data.length).toBe(3);
+    expect(data.map((e) => e.to)).toContain('Test Payee');
+  });
+
+  it('should emit markNotDuplicate when onMarkNotDuplicate is called', () => {
+    const row = { ...mockExpenses[0], possibleDuplicate: true };
+    let emitted: Expense | undefined;
+    component.markNotDuplicate.subscribe((e) => (emitted = e));
+    component.onMarkNotDuplicate(row);
+    expect(emitted).toBe(row);
+  });
 });
