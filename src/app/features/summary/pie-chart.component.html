@@ -1,0 +1,13 @@
+@if (chartData().labels?.length === 0) {
+  <p class="no-data">No data to display.</p>
+} @else {
+  <div class="pie-chart">
+    <canvas
+      baseChart
+      type="pie"
+      [data]="chartData()"
+      [options]="chartOptions"
+      [legend]="true"
+    ></canvas>
+  </div>
+}
