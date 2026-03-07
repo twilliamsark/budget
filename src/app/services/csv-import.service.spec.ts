@@ -23,11 +23,20 @@ describe('CsvImportService', () => {
     const result = await service.importCsv(csvToFile(csv));
     expect(result.expenses.length).toBe(1);
     expect(result.expenses[0].to).toBe('Test Payee');
+    expect(result.expenses[0].from).toBe('Todd W');
     expect(result.expenses[0].category).toBe('Food');
     expect(result.expenses[0].amount).toBe(-50);
     expect(result.expenses[0].account).toBe('CC-5792');
     expect(result.categories.some((c) => c.id === 'Food')).toBe(true);
     expect(result.accounts.some((a) => a.id === 'CC-5792')).toBe(true);
+  });
+
+  it('should use From column when present in CSV', async () => {
+    const csv = `Date,To,From,Category,Amount,Account
+1/21/26,Test Payee,Jane Doe,Food,-$50.00,CC-5792`;
+    const result = await service.importCsv(csvToFile(csv));
+    expect(result.expenses.length).toBe(1);
+    expect(result.expenses[0].from).toBe('Jane Doe');
   });
 
   it('should skip empty rows and summary row', async () => {

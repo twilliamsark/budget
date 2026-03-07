@@ -66,6 +66,48 @@ export class ExpenseService {
     this.accountsSignal.set([]);
   }
 
+  /**
+   * Adds an expense and persists. Ensures category/account exist in lists.
+   */
+  addExpense(expense: Expense): void {
+    this.loadError.set(null);
+    const expenses = [...this.expensesSignal(), expense];
+    const categories = this.ensureCategory(this.categoriesSignal(), expense.category);
+    const accounts = this.ensureAccount(this.accountsSignal(), expense.account);
+    this.saveAll(expenses, categories, accounts);
+  }
+
+  /**
+   * Updates an expense by id and persists. Ensures category/account exist in lists.
+   */
+  updateExpense(expense: Expense): void {
+    this.loadError.set(null);
+    const expenses = this.expensesSignal().map((e) => (e.id === expense.id ? expense : e));
+    const categories = this.ensureCategory(this.categoriesSignal(), expense.category);
+    const accounts = this.ensureAccount(this.accountsSignal(), expense.account);
+    this.saveAll(expenses, categories, accounts);
+  }
+
+  /**
+   * Deletes an expense by id and persists.
+   */
+  deleteExpense(id: string): void {
+    this.loadError.set(null);
+    const expenses = this.expensesSignal().filter((e) => e.id !== id);
+    this.storage.setExpenses(expenses);
+    this.expensesSignal.set(expenses);
+  }
+
+  private ensureCategory(list: Category[], name: string): Category[] {
+    if (!name || list.some((c) => c.id === name)) return list;
+    return [...list, { id: name }].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  private ensureAccount(list: Account[], name: string): Account[] {
+    if (!name || list.some((a) => a.id === name)) return list;
+    return [...list, { id: name }].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
   private saveAll(expenses: Expense[], categories: Category[], accounts: Account[]): void {
     this.storage.saveAll(expenses, categories, accounts);
     this.expensesSignal.set(expenses);

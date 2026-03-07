@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -32,11 +33,14 @@ import { Expense } from '../../../models';
 export class ExpensesListComponent {
   expenses = input.required<Expense[]>();
 
+  readonly editExpense = output<Expense>();
+  readonly deleteExpense = output<Expense>();
+
   readonly searchValue = signal('');
   readonly categoryFilter = signal<string | null>(null);
   readonly accountFilter = signal<string | null>(null);
 
-  readonly displayedColumns = ['date', 'to', 'category', 'amount', 'account'] as const;
+  readonly displayedColumns = ['date', 'to', 'from', 'category', 'amount', 'account', 'actions'] as const;
 
   readonly dataSource = new MatTableDataSource<Expense>([]);
   private readonly sort = viewChild(MatSort);
@@ -61,6 +65,7 @@ export class ExpensesListComponent {
       const matchesSearch =
         !search ||
         e.to.toLowerCase().includes(search) ||
+        (e.from?.toLowerCase().includes(search)) ||
         e.category.toLowerCase().includes(search) ||
         e.account.toLowerCase().includes(search);
       const matchesCategory =
@@ -125,5 +130,13 @@ export class ExpensesListComponent {
       currency: 'USD',
       minimumFractionDigits: 2,
     }).format(amount);
+  }
+
+  onEdit(row: Expense): void {
+    this.editExpense.emit(row);
+  }
+
+  onDelete(row: Expense): void {
+    this.deleteExpense.emit(row);
   }
 }

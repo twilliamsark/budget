@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>{{ isEdit() ? 'Edit expense' : 'Add expense' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" id="expense-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date</mat-label>
+      <input matInput formControlName="date" placeholder="e.g. 1/21/26" />
+      @if (dateError) {
+        <mat-error>{{ dateError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Payee</mat-label>
+      <input matInput formControlName="to" placeholder="To / Payee" />
+      @if (toError) {
+        <mat-error>{{ toError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>From</mat-label>
+      <input matInput formControlName="from" placeholder="e.g. Todd W" />
+      @if (fromError) {
+        <mat-error>{{ fromError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Category</mat-label>
+      <input
+        matInput
+        formControlName="category"
+        [matAutocomplete]="categoryAuto"
+        placeholder="Category"
+      />
+      <mat-autocomplete #categoryAuto="matAutocomplete">
+        @for (cat of categories; track cat) {
+          <mat-option [value]="cat">{{ cat }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (categoryError) {
+        <mat-error>{{ categoryError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Amount</mat-label>
+      <input matInput type="text" formControlName="amount" placeholder="e.g. -50.00" />
+      @if (amountError) {
+        <mat-error>{{ amountError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Account</mat-label>
+      <input
+        matInput
+        formControlName="account"
+        [matAutocomplete]="accountAuto"
+        placeholder="Account"
+      />
+      <mat-autocomplete #accountAuto="matAutocomplete">
+        @for (acc of accounts; track acc) {
+          <mat-option [value]="acc">{{ acc }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (accountError) {
+        <mat-error>{{ accountError }}</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (isEdit()) {
+    <button mat-button color="warn" type="button" (click)="onDelete()">
+      Delete
+    </button>
+  }
+  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" type="submit" form="expense-form">
+    {{ isEdit() ? 'Save' : 'Add' }}
+  </button>
+</mat-dialog-actions>

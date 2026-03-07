@@ -38,8 +38,14 @@ export class ExpenseStorageService {
     };
   }
 
+  private static readonly DEFAULT_FROM = 'Todd W';
+
   getExpenses(): Expense[] {
-    return this.load<Expense[]>(STORAGE_KEYS.expenses) ?? [];
+    const raw = this.load<Expense[]>(STORAGE_KEYS.expenses) ?? [];
+    return raw.map((e) => ({
+      ...e,
+      from: e.from ?? ExpenseStorageService.DEFAULT_FROM,
+    }));
   }
 
   setExpenses(expenses: Expense[]): void {

@@ -11,6 +11,7 @@ const mockExpenses: Expense[] = [
     category: 'Food',
     amount: -50.0,
     account: 'CC-5792',
+    from: 'Todd W',
   },
   {
     id: '2',
@@ -19,6 +20,7 @@ const mockExpenses: Expense[] = [
     category: 'Medical',
     amount: -100.0,
     account: 'Chk-3100',
+    from: 'Todd W',
   },
 ];
 

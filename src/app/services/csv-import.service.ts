@@ -8,9 +8,12 @@ export interface ImportResult {
   accounts: Account[];
 }
 
+const DEFAULT_FROM = 'Todd W';
+
 interface CsvRow {
   Date?: string;
   To?: string;
+  From?: string;
   Category?: string;
   Amount?: string;
   Account?: string;
@@ -56,6 +59,8 @@ export class CsvImportService {
       if (category) categorySet.add(category);
       if (account) accountSet.add(account);
 
+      const from = (row.From?.trim() || DEFAULT_FROM);
+
       expenses.push({
         id: crypto.randomUUID(),
         date,
@@ -63,6 +68,7 @@ export class CsvImportService {
         category,
         amount,
         account,
+        from,
       });
     }
 

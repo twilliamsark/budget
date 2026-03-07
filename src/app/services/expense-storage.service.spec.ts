@@ -24,10 +24,28 @@ describe('ExpenseStorageService', () => {
         category: 'Food',
         amount: -50,
         account: 'CC-1',
+        from: 'Todd W',
       },
     ];
     service.setExpenses(expenses);
     expect(service.getExpenses()).toEqual(expenses);
+  });
+
+  it('should default missing from to Todd W when rehydrating', () => {
+    const stored = [
+      {
+        id: '1',
+        date: '1/21/26',
+        to: 'Test',
+        category: 'Food',
+        amount: -50,
+        account: 'CC-1',
+      } as Expense,
+    ];
+    service.setExpenses(stored);
+    const loaded = service.getExpenses();
+    expect(loaded.length).toBe(1);
+    expect(loaded[0].from).toBe('Todd W');
   });
 
   it('should persist and retrieve categories', () => {
@@ -43,7 +61,7 @@ describe('ExpenseStorageService', () => {
   });
 
   it('should clear all data', () => {
-    service.setExpenses([{ id: '1', date: '', to: '', category: '', amount: 0, account: '' }]);
+    service.setExpenses([{ id: '1', date: '', to: '', category: '', amount: 0, account: '', from: '' }]);
     service.clear();
     expect(service.getExpenses()).toEqual([]);
     expect(service.getCategories()).toEqual([]);

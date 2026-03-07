@@ -26,6 +26,7 @@ describe('ExpenseService', () => {
         category: 'Food',
         amount: -50,
         account: 'CC-1',
+        from: 'Todd W',
       },
     ];
     storage.setExpenses(expenses);
