@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { parse } from 'csv-parse/browser/esm/sync';
 import { formatToMMDDYY } from '../utils/date-range';
-import { Expense, Category, Account } from '../models';
+import { Expense, Category, Account, AccountType } from '../models';
 
 export interface ImportResult {
   expenses: Expense[];
@@ -85,7 +85,7 @@ export class CsvImportService {
     }
 
     const categories: Category[] = [...categorySet].sort().map((id) => ({ id }));
-    const accounts: Account[] = [...accountSet].sort().map((id) => ({ id }));
+    const accounts: Account[] = [...accountSet].sort().map((id) => ({ id, type: 'asset' as AccountType }));
 
     return { expenses, categories, accounts };
   }

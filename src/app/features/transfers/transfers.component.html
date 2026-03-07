@@ -1,0 +1,43 @@
+<div class="transfers-header">
+  <h1>Transfers</h1>
+  <button mat-raised-button color="primary" (click)="openAddDialog()" aria-label="Add transfer">
+    Add transfer
+  </button>
+</div>
+
+@if (transfers().length > 0) {
+  <table mat-table [dataSource]="transfers()" class="transfers-table">
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let row">{{ row.date }}</td>
+    </ng-container>
+    <ng-container matColumnDef="from">
+      <th mat-header-cell *matHeaderCellDef>From</th>
+      <td mat-cell *matCellDef="let row">{{ row.fromAccountId }}</td>
+    </ng-container>
+    <ng-container matColumnDef="to">
+      <th mat-header-cell *matHeaderCellDef>To</th>
+      <td mat-cell *matCellDef="let row">{{ row.toAccountId }}</td>
+    </ng-container>
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let row">{{ formatAmount(row.amount) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Memo</th>
+      <td mat-cell *matCellDef="let row">{{ row.description || '—' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-icon-button color="warn" (click)="deleteTransfer(row.id)" aria-label="Delete transfer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+} @else {
+  <p class="empty">No transfers yet. Use "Add transfer" to record a transfer between accounts.</p>
+}

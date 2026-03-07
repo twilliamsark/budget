@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ExpenseStorageService } from './expense-storage.service';
-import { Expense, Category, Account } from '../models';
+import { Account, Transaction, JournalLine } from '../models';
 
 describe('ExpenseStorageService', () => {
   let service: ExpenseStorageService;
@@ -15,56 +15,45 @@ describe('ExpenseStorageService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should persist and retrieve expenses', () => {
-    const expenses: Expense[] = [
-      {
-        id: '1',
-        date: '1/21/26',
-        to: 'Test',
-        category: 'Food',
-        amount: -50,
-        account: 'CC-1',
-        from: 'Todd W',
-      },
-    ];
-    service.setExpenses(expenses);
-    expect(service.getExpenses()).toEqual(expenses);
-  });
-
-  it('should default missing from to Todd W when rehydrating', () => {
-    const stored = [
-      {
-        id: '1',
-        date: '1/21/26',
-        to: 'Test',
-        category: 'Food',
-        amount: -50,
-        account: 'CC-1',
-      } as Expense,
-    ];
-    service.setExpenses(stored);
-    const loaded = service.getExpenses();
-    expect(loaded.length).toBe(1);
-    expect(loaded[0].from).toBe('Todd W');
-  });
-
-  it('should persist and retrieve categories', () => {
-    const categories: Category[] = [{ id: 'Food' }, { id: 'Medical' }];
-    service.setCategories(categories);
-    expect(service.getCategories()).toEqual(categories);
-  });
-
   it('should persist and retrieve accounts', () => {
-    const accounts: Account[] = [{ id: 'CC-5792' }, { id: 'Chk-3100' }];
+    const accounts: Account[] = [
+      { id: 'CC-5792', type: 'liability' },
+      { id: 'Chk-3100', type: 'asset' },
+      { id: 'Food', type: 'expense' },
+    ];
     service.setAccounts(accounts);
     expect(service.getAccounts()).toEqual(accounts);
   });
 
+  it('should persist and retrieve transactions', () => {
+    const transactions: Transaction[] = [
+      { id: 'tx1', date: '01/21/26', type: 'expense', to: 'Test', from: 'Todd W' },
+    ];
+    service.setTransactions(transactions);
+    expect(service.getTransactions()).toEqual(transactions);
+  });
+
+  it('should persist and retrieve journal lines', () => {
+    const lines: JournalLine[] = [
+      { id: 'l1', transactionId: 'tx1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: 'tx1', accountId: 'CC-1', debit: 0, credit: 50 },
+    ];
+    service.setJournalLines(lines);
+    expect(service.getJournalLines()).toEqual(lines);
+  });
+
   it('should clear all data', () => {
-    service.setExpenses([{ id: '1', date: '', to: '', category: '', amount: 0, account: '', from: '' }]);
+    service.setAccounts([{ id: 'A', type: 'asset' }]);
+    service.setTransactions([{ id: 't', date: '01/01/26', type: 'transfer' }]);
+    service.setJournalLines([{ id: 'l', transactionId: 't', accountId: 'A', debit: 0, credit: 0 }]);
     service.clear();
-    expect(service.getExpenses()).toEqual([]);
-    expect(service.getCategories()).toEqual([]);
     expect(service.getAccounts()).toEqual([]);
+    expect(service.getTransactions()).toEqual([]);
+    expect(service.getJournalLines()).toEqual([]);
+  });
+
+  it('should return null from getLegacyForMigration when accounts have type', () => {
+    service.setAccounts([{ id: 'CC-1', type: 'liability' }]);
+    expect(service.getLegacyForMigration()).toBeNull();
   });
 });

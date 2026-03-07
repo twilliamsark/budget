@@ -1,0 +1,15 @@
+.transfers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.transfers-table {
+  width: 100%;
+}
+
+.empty {
+  color: var(--mat-sys-outline, #666);
+  margin-top: 1rem;
+}

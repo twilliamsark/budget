@@ -12,6 +12,7 @@ import {
   ExpenseFormDialogResult,
 } from './expense-form-dialog/expense-form-dialog.component';
 import { ExpensesListComponent } from './expenses-list/expenses-list.component';
+import { TransferFormDialogComponent } from './transfer-form-dialog/transfer-form-dialog.component';
 
 @Component({
   selector: 'app-expenses',
@@ -44,6 +45,9 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
           </button>
           <button mat-raised-button (click)="openAddDialog()" aria-label="Add expense">
             Add expense
+          </button>
+          <button mat-raised-button (click)="openTransferDialog()" aria-label="Add transfer">
+            Add transfer
           </button>
           <button mat-raised-button color="warn" (click)="expenseService.clearAll()" aria-label="Clear all expenses and related data">
             Clear all
@@ -114,6 +118,13 @@ export class ExpensesComponent {
       const toExport = list.getFilteredExpenses();
       this.csvExport.exportToCsv(toExport);
     }
+  }
+
+  openTransferDialog(): void {
+    this.dialog
+      .open(TransferFormDialogComponent, { width: '400px' })
+      .afterClosed()
+      .subscribe(() => {});
   }
 
   openAddDialog(): void {

@@ -18,21 +18,17 @@ describe('ExpenseService', () => {
   });
 
   it('should load from storage when data exists', () => {
-    const expenses = [
-      {
-        id: '1',
-        date: '1/21/26',
-        to: 'Test',
-        category: 'Food',
-        amount: -50,
-        account: 'CC-1',
-        from: 'Todd W',
-      },
-    ];
-    storage.setExpenses(expenses);
-    storage.setCategories([{ id: 'Food' }]);
-    storage.setAccounts([{ id: 'CC-1' }]);
-
+    storage.setAccounts([
+      { id: 'Food', type: 'expense' },
+      { id: 'CC-1', type: 'liability' },
+    ]);
+    storage.setTransactions([
+      { id: '1', date: '01/21/26', type: 'expense', to: 'Test', from: 'Todd W' },
+    ]);
+    storage.setJournalLines([
+      { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+    ]);
     service.loadFromStorage();
     expect(service.expenses().length).toBe(1);
     expect(service.hasData()).toBe(true);
@@ -127,7 +123,7 @@ describe('ExpenseService', () => {
     it('should clear possibleDuplicate when set', () => {
       const expense = {
         id: '1',
-        date: '1/21/26',
+        date: '01/21/26',
         to: 'Test',
         category: 'Food',
         amount: -50,
@@ -135,9 +131,12 @@ describe('ExpenseService', () => {
         from: 'Todd W',
         possibleDuplicate: true,
       };
-      storage.setExpenses([expense]);
-      storage.setCategories([{ id: 'Food' }]);
-      storage.setAccounts([{ id: 'CC-1' }]);
+      storage.setAccounts([{ id: 'Food', type: 'expense' }, { id: 'CC-1', type: 'liability' }]);
+      storage.setTransactions([{ id: '1', date: '01/21/26', type: 'expense', to: 'Test', from: 'Todd W', possibleDuplicate: true }]);
+      storage.setJournalLines([
+        { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+        { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+      ]);
       service.loadFromStorage();
       service.markNotDuplicate(expense);
       expect(service.expenses()[0].possibleDuplicate).toBe(false);
@@ -146,16 +145,19 @@ describe('ExpenseService', () => {
     it('should no-op when expense is not possibleDuplicate', () => {
       const expense = {
         id: '1',
-        date: '1/21/26',
+        date: '01/21/26',
         to: 'Test',
         category: 'Food',
         amount: -50,
         account: 'CC-1',
         from: 'Todd W',
       };
-      storage.setExpenses([expense]);
-      storage.setCategories([{ id: 'Food' }]);
-      storage.setAccounts([{ id: 'CC-1' }]);
+      storage.setAccounts([{ id: 'Food', type: 'expense' }, { id: 'CC-1', type: 'liability' }]);
+      storage.setTransactions([{ id: '1', date: '01/21/26', type: 'expense', to: 'Test', from: 'Todd W' }]);
+      storage.setJournalLines([
+        { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+        { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+      ]);
       service.loadFromStorage();
       service.markNotDuplicate(expense);
       expect(service.expenses().length).toBe(1);
@@ -165,7 +167,7 @@ describe('ExpenseService', () => {
   it('updateExpense should clear possibleDuplicate', () => {
     const expense = {
       id: '1',
-      date: '1/21/26',
+      date: '01/21/26',
       to: 'Test',
       category: 'Food',
       amount: -50,
@@ -173,9 +175,12 @@ describe('ExpenseService', () => {
       from: 'Todd W',
       possibleDuplicate: true,
     };
-    storage.setExpenses([expense]);
-    storage.setCategories([{ id: 'Food' }]);
-    storage.setAccounts([{ id: 'CC-1' }]);
+    storage.setAccounts([{ id: 'Food', type: 'expense' }, { id: 'CC-1', type: 'liability' }, { id: 'Medical', type: 'expense' }]);
+    storage.setTransactions([{ id: '1', date: '01/21/26', type: 'expense', to: 'Test', from: 'Todd W', possibleDuplicate: true }]);
+    storage.setJournalLines([
+      { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+    ]);
     service.loadFromStorage();
     service.updateExpense({ ...expense, category: 'Medical' });
     expect(service.expenses()[0].possibleDuplicate).toBe(false);

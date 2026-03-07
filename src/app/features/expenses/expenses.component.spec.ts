@@ -49,11 +49,13 @@ describe('ExpensesComponent', () => {
   });
 
   it('should export CSV with filtered expenses when Export CSV is used', () => {
-    storage.setExpenses(sampleExpenses);
-    storage.setCategories([{ id: 'Food' }]);
-    storage.setAccounts([{ id: 'CC-1' }]);
+    storage.setAccounts([{ id: 'Food', type: 'expense' }, { id: 'CC-1', type: 'liability' }]);
+    storage.setTransactions([{ id: '1', date: '01/21/26', type: 'expense', to: 'Payee', from: 'Todd W' }]);
+    storage.setJournalLines([
+      { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: '1', accountId: 'CC-1', debit: 0, credit: 50 },
+    ]);
     component.expenseService.loadFromStorage();
-    // Set date range to include sample expense (1/21/26)
     component.dateRange.setStart('2026-01-01');
     component.dateRange.setEnd('2026-01-31');
     fixture.detectChanges();

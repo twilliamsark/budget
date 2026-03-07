@@ -1,6 +1,6 @@
 /**
- * Expense model. Includes From (default 'Todd W' when missing on import or rehydration).
- * possibleDuplicate is set when re-importing a CSV that has a row with same date/to/from but different category/amount.
+ * Expense view row (derived from Transaction + JournalLines). Used for expense list, form, and CSV export.
+ * Not persisted; data lives in Transaction and JournalLine. amount is typically negative for display.
  */
 export interface Expense {
   id: string;

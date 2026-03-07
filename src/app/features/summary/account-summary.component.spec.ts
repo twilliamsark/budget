@@ -1,40 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { Expense } from '../../models';
 import { ExpenseService } from '../../services/expense.service';
 import { ExpenseStorageService } from '../../services/expense-storage.service';
 import { AccountSummaryComponent } from './account-summary.component';
-
-const mockExpenses: Expense[] = [
-  {
-    id: '1',
-    date: '1/21/26',
-    to: 'Payee A',
-    category: 'Food',
-    amount: -50,
-    account: 'CC-5792',
-    from: 'Todd W',
-  },
-  {
-    id: '2',
-    date: '1/22/26',
-    to: 'Payee B',
-    category: 'Medical',
-    amount: -30,
-    account: 'CC-5792',
-    from: 'Todd W',
-  },
-  {
-    id: '3',
-    date: '1/23/26',
-    to: 'Payee C',
-    category: 'Medical',
-    amount: -100,
-    account: 'Chk-3100',
-    from: 'Todd W',
-  },
-];
 
 describe('AccountSummaryComponent', () => {
   let component: AccountSummaryComponent;
@@ -51,7 +20,25 @@ describe('AccountSummaryComponent', () => {
     storage = TestBed.inject(ExpenseStorageService);
     expenseService = TestBed.inject(ExpenseService);
     storage.clear();
-    storage.setExpenses(mockExpenses);
+    storage.setAccounts([
+      { id: 'Food', type: 'expense' },
+      { id: 'Medical', type: 'expense' },
+      { id: 'CC-5792', type: 'liability' },
+      { id: 'Chk-3100', type: 'asset' },
+    ]);
+    storage.setTransactions([
+      { id: '1', date: '01/21/26', type: 'expense', to: 'Payee A', from: 'Todd W' },
+      { id: '2', date: '01/22/26', type: 'expense', to: 'Payee B', from: 'Todd W' },
+      { id: '3', date: '01/23/26', type: 'expense', to: 'Payee C', from: 'Todd W' },
+    ]);
+    storage.setJournalLines([
+      { id: 'l1', transactionId: '1', accountId: 'Food', debit: 50, credit: 0 },
+      { id: 'l2', transactionId: '1', accountId: 'CC-5792', debit: 0, credit: 50 },
+      { id: 'l3', transactionId: '2', accountId: 'Medical', debit: 30, credit: 0 },
+      { id: 'l4', transactionId: '2', accountId: 'CC-5792', debit: 0, credit: 30 },
+      { id: 'l5', transactionId: '3', accountId: 'Medical', debit: 100, credit: 0 },
+      { id: 'l6', transactionId: '3', accountId: 'Chk-3100', debit: 0, credit: 100 },
+    ]);
     expenseService.loadFromStorage();
 
     fixture = TestBed.createComponent(AccountSummaryComponent);
@@ -111,7 +98,10 @@ describe('AccountSummaryComponent', () => {
   });
 
   it('should show empty state when no expenses', () => {
-    storage.setExpenses([]);
+    storage.clear();
+    storage.setAccounts([{ id: 'CC-5792', type: 'liability' }]);
+    storage.setTransactions([]);
+    storage.setJournalLines([]);
     expenseService.loadFromStorage();
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
