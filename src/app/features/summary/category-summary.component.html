@@ -1,0 +1,26 @@
+<div class="summary-page">
+  <h1>Category expense summary</h1>
+  @if (expenses().length === 0) {
+    <p class="empty">No expenses. Import a CSV or add expenses to see a summary.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table mat-table [dataSource]="summaryRows()">
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+        </ng-container>
+        <ng-container matColumnDef="count">
+          <th mat-header-cell *matHeaderCellDef>Count</th>
+          <td mat-cell *matCellDef="let row">{{ row.count }}</td>
+        </ng-container>
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef>Total</th>
+          <td mat-cell *matCellDef="let row">{{ formatAmount(row.total) }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+    <p class="grand-total">Grand total: {{ formatAmount(grandTotal()) }}</p>
+  }
+</div>

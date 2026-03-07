@@ -1,0 +1,16 @@
+.summary-page {
+  padding: 1rem;
+}
+
+.empty {
+  color: var(--mat-sys-on-surface-variant, #49454f);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.grand-total {
+  font-weight: 500;
+}

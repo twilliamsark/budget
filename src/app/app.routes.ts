@@ -7,4 +7,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/expenses/expenses.component').then((m) => m.ExpensesComponent),
   },
+  {
+    path: 'summary/category',
+    loadComponent: () =>
+      import('./features/summary/category-summary.component').then((m) => m.CategorySummaryComponent),
+  },
+  {
+    path: 'summary/account',
+    loadComponent: () =>
+      import('./features/summary/account-summary.component').then((m) => m.AccountSummaryComponent),
+  },
 ];

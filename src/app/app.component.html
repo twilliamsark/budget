@@ -1,1 +1,8 @@
-<router-outlet />
+<nav class="app-nav">
+  <a routerLink="/expenses" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Expenses</a>
+  <a routerLink="/summary/category" routerLinkActive="active">Category summary</a>
+  <a routerLink="/summary/account" routerLinkActive="active">Account summary</a>
+</nav>
+<main class="app-main">
+  <router-outlet />
+</main>
