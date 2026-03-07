@@ -1,9 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Expense } from '../../models';
 import { CsvExportService } from '../../services/csv-export.service';
 import { ExpenseService } from '../../services/expense.service';
+import {
+  defaultReportRange,
+  fromInputDateString,
+  isInRange,
+  parseExpenseDate,
+  toInputDateString,
+} from '../../utils/date-range';
 import {
   ExpenseFormDialogComponent,
   ExpenseFormDialogData,
@@ -19,6 +26,9 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
     '.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; }',
     '.header-actions { display: flex; gap: 0.5rem; }',
     'input[type="file"] { display: none; }',
+    '.date-range { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }',
+    '.date-range label { display: flex; align-items: center; gap: 0.5rem; }',
+    '.date-range input { padding: 0.25rem 0.5rem; font: inherit; }',
   ],
   template: `
     <div class="header">
@@ -47,9 +57,29 @@ import { ExpensesListComponent } from './expenses-list/expenses-list.component';
       </div>
     </div>
     @if (expenseService.hasData()) {
+      <div class="date-range">
+        <label>
+          <span>From</span>
+          <input
+            type="date"
+            [value]="startDateStr()"
+            (input)="onStartDateChange($any($event.target).value)"
+            aria-label="Start date"
+          />
+        </label>
+        <label>
+          <span>To</span>
+          <input
+            type="date"
+            [value]="endDateStr()"
+            (input)="onEndDateChange($any($event.target).value)"
+            aria-label="End date"
+          />
+        </label>
+      </div>
       <app-expenses-list
         #expensesList
-        [expenses]="expenseService.expenses()"
+        [expenses]="filteredByDateRange()"
         (editExpense)="openEditDialog($event)"
         (deleteExpense)="confirmDelete($event)"
         (markNotDuplicate)="onMarkNotDuplicate($event)"
@@ -67,6 +97,38 @@ export class ExpensesComponent {
   private readonly dialog = inject(MatDialog);
   private readonly csvExport = inject(CsvExportService);
   private readonly expensesListRef = viewChild<ExpensesListComponent>('expensesList');
+
+  private readonly defaultRange = defaultReportRange();
+  readonly startDateStr = signal(toInputDateString(this.defaultRange.start));
+  readonly endDateStr = signal(toInputDateString(this.defaultRange.end));
+
+  readonly rangeStart = computed(() => {
+    const d = fromInputDateString(this.startDateStr());
+    return d ?? this.defaultRange.start;
+  });
+
+  readonly rangeEnd = computed(() => {
+    const d = fromInputDateString(this.endDateStr());
+    return d ?? this.defaultRange.end;
+  });
+
+  readonly filteredByDateRange = computed(() => {
+    const list = this.expenseService.expenses();
+    const start = this.rangeStart();
+    const end = this.rangeEnd();
+    return list.filter((e) => {
+      const parsed = parseExpenseDate(e.date);
+      return isInRange(parsed, start, end);
+    });
+  });
+
+  onStartDateChange(value: string): void {
+    this.startDateStr.set(value || toInputDateString(this.defaultRange.start));
+  }
+
+  onEndDateChange(value: string): void {
+    this.endDateStr.set(value || toInputDateString(this.defaultRange.end));
+  }
 
   exportCsv(): void {
     const list = this.expensesListRef();

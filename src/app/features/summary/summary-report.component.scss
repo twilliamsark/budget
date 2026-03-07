@@ -1,0 +1,48 @@
+.summary-report {
+  padding: 1rem;
+}
+
+.date-range {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    span {
+      font-weight: 500;
+    }
+
+    input {
+      padding: 0.25rem 0.5rem;
+      font: inherit;
+    }
+  }
+}
+
+.empty {
+  color: var(--mat-sys-on-surface-variant, #49454f);
+}
+
+.grand-total {
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}

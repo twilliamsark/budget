@@ -8,13 +8,10 @@ export const routes: Routes = [
       import('./features/expenses/expenses.component').then((m) => m.ExpensesComponent),
   },
   {
-    path: 'summary/category',
+    path: 'summary',
     loadComponent: () =>
-      import('./features/summary/category-summary.component').then((m) => m.CategorySummaryComponent),
+      import('./features/summary/summary-report.component').then((m) => m.SummaryReportComponent),
   },
-  {
-    path: 'summary/account',
-    loadComponent: () =>
-      import('./features/summary/account-summary.component').then((m) => m.AccountSummaryComponent),
-  },
+  { path: 'summary/category', redirectTo: 'summary', pathMatch: 'full' },
+  { path: 'summary/account', redirectTo: 'summary', pathMatch: 'full' },
 ];

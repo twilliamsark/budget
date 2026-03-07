@@ -53,6 +53,9 @@ describe('ExpensesComponent', () => {
     storage.setCategories([{ id: 'Food' }]);
     storage.setAccounts([{ id: 'CC-1' }]);
     component.expenseService.loadFromStorage();
+    // Set date range to include sample expense (1/21/26)
+    component.startDateStr.set('2026-01-01');
+    component.endDateStr.set('2026-01-31');
     fixture.detectChanges();
 
     const exportSpy = spyOn(csvExport, 'exportToCsv');
