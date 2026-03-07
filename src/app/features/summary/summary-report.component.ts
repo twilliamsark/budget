@@ -4,20 +4,14 @@ import {
   computed,
   effect,
   inject,
-  signal,
   viewChildren,
 } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { DateRangeService } from '../../services/date-range.service';
 import { ExpenseService } from '../../services/expense.service';
 import { PieChartComponent } from './pie-chart.component';
-import {
-  defaultReportRange,
-  fromInputDateString,
-  isInRange,
-  parseExpenseDate,
-  toInputDateString,
-} from '../../utils/date-range';
+import { defaultReportRange, fromInputDateString, isInRange, parseExpenseDate } from '../../utils/date-range';
 export interface CategorySummaryRow {
   category: string;
   total: number;
@@ -42,19 +36,17 @@ export interface AccountSummaryRow {
 })
 export class SummaryReportComponent {
   private readonly expenseService = inject(ExpenseService);
+  readonly dateRange = inject(DateRangeService);
 
   private readonly defaultRange = defaultReportRange();
 
-  readonly startDateStr = signal(toInputDateString(this.defaultRange.start));
-  readonly endDateStr = signal(toInputDateString(this.defaultRange.end));
-
   readonly rangeStart = computed(() => {
-    const d = fromInputDateString(this.startDateStr());
+    const d = fromInputDateString(this.dateRange.startDateStr());
     return d ?? this.defaultRange.start;
   });
 
   readonly rangeEnd = computed(() => {
-    const d = fromInputDateString(this.endDateStr());
+    const d = fromInputDateString(this.dateRange.endDateStr());
     return d ?? this.defaultRange.end;
   });
 
@@ -104,11 +96,11 @@ export class SummaryReportComponent {
   }
 
   onStartDateChange(value: string): void {
-    this.startDateStr.set(value || toInputDateString(this.defaultRange.start));
+    this.dateRange.setStart(value);
   }
 
   onEndDateChange(value: string): void {
-    this.endDateStr.set(value || toInputDateString(this.defaultRange.end));
+    this.dateRange.setEnd(value);
   }
 
   formatAmount(amount: number): string {
