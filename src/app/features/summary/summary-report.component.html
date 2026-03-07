@@ -6,7 +6,7 @@
       <span>From</span>
       <input
         type="date"
-        [value]="startDateStr()"
+        [value]="dateRange.startDateStr()"
         (input)="onStartDateChange($any($event.target).value)"
         aria-label="Start date"
       />
@@ -15,7 +15,7 @@
       <span>To</span>
       <input
         type="date"
-        [value]="endDateStr()"
+        [value]="dateRange.endDateStr()"
         (input)="onEndDateChange($any($event.target).value)"
         aria-label="End date"
       />
@@ -33,7 +33,7 @@
       <h2>By category</h2>
       <app-pie-chart [segments]="categoryChartSegments()" />
       <div class="table-wrapper">
-        <table mat-table [dataSource]="categoryDataSource" matSort>
+        <table mat-table [dataSource]="categoryDataSource" matSort matSortActive="percentage" matSortDirection="desc">
           <ng-container matColumnDef="category">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
             <td mat-cell *matCellDef="let row">{{ row.category }}</td>
@@ -60,7 +60,7 @@
       <h2>By account</h2>
       <app-pie-chart [segments]="accountChartSegments()" />
       <div class="table-wrapper">
-        <table mat-table [dataSource]="accountDataSource" matSort>
+        <table mat-table [dataSource]="accountDataSource" matSort matSortActive="percentage" matSortDirection="desc">
           <ng-container matColumnDef="account">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Account</th>
             <td mat-cell *matCellDef="let row">{{ row.account }}</td>

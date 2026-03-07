@@ -31,8 +31,8 @@ describe('SummaryReportComponent', () => {
   });
 
   it('should default date range to last month', () => {
-    const start = component.startDateStr();
-    const end = component.endDateStr();
+    const start = component.dateRange.startDateStr();
+    const end = component.dateRange.endDateStr();
     expect(start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(new Date(start).getTime()).toBeLessThanOrEqual(new Date(end).getTime());
@@ -61,8 +61,8 @@ describe('SummaryReportComponent', () => {
       },
     ]);
     expenseService.loadFromStorage();
-    component.startDateStr.set('2026-02-01');
-    component.endDateStr.set('2026-02-28');
+    component.dateRange.setStart('2026-02-01');
+    component.dateRange.setEnd('2026-02-28');
     fixture.detectChanges();
 
     expect(component.filteredExpenses().length).toBe(2);
