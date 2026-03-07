@@ -27,6 +27,29 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>From</mat-label>
+      <input
+        matInput
+        type="text"
+        [value]="fromFilter() ?? ''"
+        (input)="onFromFilterChange($any($event.target).value)"
+        [matAutocomplete]="fromAuto"
+        placeholder="All"
+        aria-label="Filter by from"
+      />
+      @if (fromFilter()) {
+        <button mat-icon-button matSuffix type="button" (click)="clearFromFilter()" aria-label="Clear from filter">
+          <span class="clear-icon" aria-hidden="true">×</span>
+        </button>
+      }
+      <mat-autocomplete #fromAuto="matAutocomplete" (optionSelected)="onFromFilterChange($event.option.value)">
+        @for (f of froms(); track f) {
+          <mat-option [value]="f">{{ f }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Category</mat-label>
       <input
         matInput

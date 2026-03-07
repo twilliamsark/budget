@@ -39,6 +39,7 @@ export class ExpensesListComponent {
   readonly searchValue = signal('');
   readonly categoryFilter = signal<string | null>(null);
   readonly accountFilter = signal<string | null>(null);
+  readonly fromFilter = signal<string | null>(null);
 
   readonly displayedColumns = ['date', 'to', 'from', 'category', 'amount', 'account', 'actions'] as const;
 
@@ -60,6 +61,7 @@ export class ExpensesListComponent {
     const search = this.searchValue().toLowerCase();
     const category = this.categoryFilter();
     const account = this.accountFilter();
+    const from = this.fromFilter();
 
     return list.filter((e) => {
       const matchesSearch =
@@ -72,7 +74,9 @@ export class ExpensesListComponent {
         !category || e.category.toLowerCase().includes(category.toLowerCase());
       const matchesAccount =
         !account || e.account.toLowerCase().includes(account.toLowerCase());
-      return matchesSearch && matchesCategory && matchesAccount;
+      const matchesFrom =
+        !from || (e.from?.toLowerCase().includes(from.toLowerCase()));
+      return matchesSearch && matchesCategory && matchesAccount && matchesFrom;
     });
   });
 
@@ -83,6 +87,11 @@ export class ExpensesListComponent {
 
   readonly accounts = computed(() => {
     const set = new Set(this.expenses().map((e) => e.account).filter(Boolean));
+    return [...set].sort();
+  });
+
+  readonly froms = computed(() => {
+    const set = new Set(this.expenses().map((e) => e.from).filter(Boolean));
     return [...set].sort();
   });
 
@@ -98,6 +107,10 @@ export class ExpensesListComponent {
     this.accountFilter.set(value || null);
   }
 
+  onFromFilterChange(value: string): void {
+    this.fromFilter.set(value || null);
+  }
+
   clearSearch(): void {
     this.searchValue.set('');
   }
@@ -110,17 +123,23 @@ export class ExpensesListComponent {
     this.accountFilter.set(null);
   }
 
+  clearFromFilter(): void {
+    this.fromFilter.set(null);
+  }
+
   clearAllFilters(): void {
     this.searchValue.set('');
     this.categoryFilter.set(null);
     this.accountFilter.set(null);
+    this.fromFilter.set(null);
   }
 
   hasActiveFilters(): boolean {
     return (
       !!this.searchValue() ||
       !!this.categoryFilter() ||
-      !!this.accountFilter()
+      !!this.accountFilter() ||
+      !!this.fromFilter()
     );
   }
 

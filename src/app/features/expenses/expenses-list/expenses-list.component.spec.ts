@@ -22,6 +22,15 @@ const mockExpenses: Expense[] = [
     account: 'Chk-3100',
     from: 'Todd W',
   },
+  {
+    id: '3',
+    date: '1/23/26',
+    to: 'Third Payee',
+    category: 'Food',
+    amount: -25.0,
+    account: 'CC-5792',
+    from: 'Jane Doe',
+  },
 ];
 
 describe('ExpensesListComponent', () => {
@@ -46,9 +55,10 @@ describe('ExpensesListComponent', () => {
   it('should display expenses', () => {
     // Effect updates dataSource after first CD
     fixture.detectChanges();
-    expect(component.dataSource.data.length).toBe(2);
+    expect(component.dataSource.data.length).toBe(3);
     expect(component.dataSource.data[0].to).toBe('Test Payee');
     expect(component.dataSource.data[1].to).toBe('Another Payee');
+    expect(component.dataSource.data[2].to).toBe('Third Payee');
   });
 
   it('should filter by search term', () => {
@@ -63,6 +73,14 @@ describe('ExpensesListComponent', () => {
     fixture.detectChanges();
     expect(component.dataSource.data.length).toBe(1);
     expect(component.dataSource.data[0].category).toBe('Medical');
+  });
+
+  it('should filter by from', () => {
+    component.onFromFilterChange('Jane Doe');
+    fixture.detectChanges();
+    expect(component.dataSource.data.length).toBe(1);
+    expect(component.dataSource.data[0].from).toBe('Jane Doe');
+    expect(component.dataSource.data[0].to).toBe('Third Payee');
   });
 
   it('should format amount as currency', () => {
