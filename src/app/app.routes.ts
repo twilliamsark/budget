@@ -22,6 +22,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/transfers/transfers.component').then((m) => m.TransfersComponent),
   },
+  {
+    path: 'accounts',
+    loadComponent: () =>
+      import('./features/accounts/accounts.component').then((m) => m.AccountsComponent),
+  },
   { path: 'summary/category', redirectTo: 'summary', pathMatch: 'full' },
   { path: 'summary/account', redirectTo: 'summary', pathMatch: 'full' },
 ];

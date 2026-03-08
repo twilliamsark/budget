@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -14,8 +15,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { expenseDateSortKey } from '../../../utils/date-range';
 import { Expense } from '../../../models';
+import { LedgerService } from '../../../services/ledger.service';
+import type { Transaction, JournalLine } from '../../../models';
 
 @Component({
   selector: 'app-expenses-list',
@@ -26,12 +30,15 @@ import { Expense } from '../../../models';
     MatSortModule,
     MatAutocompleteModule,
     MatButtonModule,
+    MatIconModule,
   ],
   templateUrl: './expenses-list.component.html',
   styleUrl: './expenses-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExpensesListComponent {
+  private readonly ledger = inject(LedgerService);
+
   expenses = input.required<Expense[]>();
 
   readonly editExpense = output<Expense>();
@@ -43,7 +50,10 @@ export class ExpensesListComponent {
   readonly accountFilter = signal<string | null>(null);
   readonly fromFilter = signal<string | null>(null);
 
-  readonly displayedColumns = ['date', 'to', 'from', 'category', 'amount', 'account', 'actions'] as const;
+  /** Set of expense (transaction) ids for which the detail row is expanded. */
+  readonly expandedRowIds = signal<Set<string>>(new Set());
+
+  readonly displayedColumns = ['expand', 'date', 'to', 'from', 'category', 'amount', 'account', 'actions'] as const;
 
   readonly dataSource = new MatTableDataSource<Expense>([]);
   private readonly sort = viewChild(MatSort);
@@ -169,6 +179,22 @@ export class ExpensesListComponent {
 
   onMarkNotDuplicate(row: Expense): void {
     this.markNotDuplicate.emit(row);
+  }
+
+  isExpanded(row: Expense): boolean {
+    return this.expandedRowIds().has(row.id);
+  }
+
+  toggleExpanded(row: Expense): void {
+    const set = new Set(this.expandedRowIds());
+    if (set.has(row.id)) set.delete(row.id);
+    else set.add(row.id);
+    this.expandedRowIds.set(set);
+  }
+
+  /** Transaction and journal lines for this expense (expense.id = transaction id). */
+  getDetail(row: Expense): { transaction: Transaction; lines: JournalLine[] } | null {
+    return this.ledger.getTransactionWithLines(row.id);
   }
 
   /** Returns the currently displayed (filtered and sorted) expenses for export. */

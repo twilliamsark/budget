@@ -182,6 +182,14 @@ export class LedgerService {
     this.persist();
   }
 
+  /** Returns the transaction and its journal lines for a given transaction id, or null if not found. */
+  getTransactionWithLines(transactionId: string): { transaction: Transaction; lines: JournalLine[] } | null {
+    const transaction = this.transactionsSignal().find((t) => t.id === transactionId);
+    if (!transaction) return null;
+    const lines = this.linesSignal().filter((l) => l.transactionId === transactionId);
+    return { transaction, lines };
+  }
+
   getLinesByAccount(accountId: string): Array<JournalLine & { date: string; description?: string }> {
     const lines = this.linesSignal().filter((l) => l.accountId === accountId);
     const txMap = new Map(this.transactionsSignal().map((t) => [t.id, t]));
@@ -212,6 +220,43 @@ export class LedgerService {
     return this.accountsSignal()
       .filter((a) => a.type === 'asset' || a.type === 'liability')
       .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  addAccount(account: Account): void {
+    const list = this.accountsSignal();
+    if (list.some((a) => a.id === account.id)) return;
+    this.accountsSignal.set([...list, { id: account.id, type: account.type, name: account.name }].sort((a, b) => a.id.localeCompare(b.id)));
+    this.persist();
+  }
+
+  updateAccount(oldId: string, account: Account): void {
+    const list = this.accountsSignal();
+    const idx = list.findIndex((a) => a.id === oldId);
+    if (idx === -1) return;
+    const newId = account.id.trim();
+    if (!newId) return;
+    const updated = list.map((a) => (a.id === oldId ? { id: newId, type: account.type, name: account.name } : a));
+    if (newId !== oldId) {
+      this.accountsSignal.set(updated.sort((a, b) => a.id.localeCompare(b.id)));
+      this.linesSignal.update((lines) =>
+        lines.map((l) => (l.accountId === oldId ? { ...l, accountId: newId } : l))
+      );
+    } else {
+      this.accountsSignal.set(updated);
+    }
+    this.persist();
+  }
+
+  /** Returns true if any journal line references this account. */
+  isAccountInUse(accountId: string): boolean {
+    return this.linesSignal().some((l) => l.accountId === accountId);
+  }
+
+  deleteAccount(accountId: string): boolean {
+    if (this.isAccountInUse(accountId)) return false;
+    this.accountsSignal.update((list) => list.filter((a) => a.id !== accountId));
+    this.persist();
+    return true;
   }
 
   clearAll(): void {
