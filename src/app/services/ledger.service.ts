@@ -73,6 +73,31 @@ export class LedgerService {
       .sort((a, b) => b.date.localeCompare(a.date));
   });
 
+  /** Income transactions as view model: id, date, toAccountId (asset), incomeAccountId, amount, description. */
+  readonly incomeView = computed(() => {
+    const transactions = this.transactionsSignal().filter((t) => t.type === 'income');
+    const lines = this.linesSignal();
+    const accountMap = new Map(this.accountsSignal().map((a) => [a.id, a]));
+    return transactions
+      .map((t) => {
+        const txLines = lines.filter((l) => l.transactionId === t.id);
+        const debitLine = txLines.find((l) => l.debit > 0);
+        const creditLine = txLines.find((l) => l.credit > 0);
+        const amount = debitLine?.debit ?? creditLine?.credit ?? 0;
+        const toAccountId = debitLine?.accountId ?? '';
+        const incomeAccountId = creditLine?.accountId ?? '';
+        return {
+          id: t.id,
+          date: t.date,
+          toAccountId,
+          incomeAccountId,
+          amount,
+          description: t.description ?? '',
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  });
+
   constructor() {
     this.runMigrationIfNeeded();
     this.loadFromStorage();
@@ -176,6 +201,20 @@ export class LedgerService {
     this.persist();
   }
 
+  /** Income: debit toAccountId (asset), credit incomeAccountId (income). E.g. interest/dividends into checking. */
+  addIncomeTransaction(toAccountId: string, incomeAccountId: string, amount: number, date: string, description?: string): void {
+    if (amount <= 0) return;
+    this.ensureAccount(toAccountId, 'asset');
+    this.ensureAccount(incomeAccountId, 'income');
+    const id = crypto.randomUUID();
+    const tx: Transaction = { id, date, type: 'income', description };
+    const line1: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: toAccountId, debit: amount, credit: 0 };
+    const line2: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: incomeAccountId, debit: 0, credit: amount };
+    this.transactionsSignal.update((t) => [...t, tx]);
+    this.linesSignal.update((l) => [...l, line1, line2]);
+    this.persist();
+  }
+
   deleteTransaction(transactionId: string): void {
     this.transactionsSignal.update((t) => t.filter((x) => x.id !== transactionId));
     this.linesSignal.update((l) => l.filter((x) => x.transactionId !== transactionId));
@@ -219,6 +258,12 @@ export class LedgerService {
   getPaymentAccounts(): Account[] {
     return this.accountsSignal()
       .filter((a) => a.type === 'asset' || a.type === 'liability')
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  getIncomeAccounts(): Account[] {
+    return this.accountsSignal()
+      .filter((a) => a.type === 'income')
       .sort((a, b) => a.id.localeCompare(b.id));
   }
 
