@@ -23,6 +23,17 @@ export interface TransferCsvRow {
   description: string;
 }
 
+const JOURNAL_CSV_HEADERS = ['EntryId', 'Date', 'Description', 'Account', 'Debit', 'Credit'] as const;
+
+export interface JournalCsvLine {
+  entryId: string;
+  date: string;
+  description: string;
+  accountId: string;
+  debit: number;
+  credit: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -105,6 +116,29 @@ export class CsvExportService {
    */
   exportTransferToCsv(rows: TransferCsvRow[], filename: string = 'transfers.csv'): void {
     const csv = this.buildTransferCsv(rows);
+    this.downloadCsv(csv, filename);
+  }
+
+  /**
+   * Builds a CSV string from journal entry lines. One row per line; EntryId groups lines into one entry.
+   */
+  buildJournalCsv(lines: JournalCsvLine[]): string {
+    const header = JOURNAL_CSV_HEADERS.join(',');
+    const rows = lines.map((r) =>
+      [
+        this.escapeCsvField(r.entryId),
+        this.escapeCsvField(r.date),
+        this.escapeCsvField(r.description ?? ''),
+        this.escapeCsvField(r.accountId),
+        this.escapeCsvField(r.debit.toFixed(2)),
+        this.escapeCsvField(r.credit.toFixed(2)),
+      ].join(',')
+    );
+    return [header, ...rows].join('\n');
+  }
+
+  exportJournalToCsv(lines: JournalCsvLine[], filename: string = 'journal.csv'): void {
+    const csv = this.buildJournalCsv(lines);
     this.downloadCsv(csv, filename);
   }
 

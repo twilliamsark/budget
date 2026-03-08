@@ -32,6 +32,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/income/income.component').then((m) => m.IncomeComponent),
   },
+  {
+    path: 'journal',
+    loadComponent: () =>
+      import('./features/journal/journal.component').then((m) => m.JournalComponent),
+  },
   { path: 'summary/category', redirectTo: 'summary', pathMatch: 'full' },
   { path: 'summary/account', redirectTo: 'summary', pathMatch: 'full' },
 ];

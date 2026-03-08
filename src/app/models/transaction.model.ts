@@ -2,8 +2,9 @@
  * Transaction (journal entry). For expense: two lines (debit expense account, credit payment account).
  * For transfer: two lines (debit from-account, credit to-account).
  * For income: two lines (debit asset account, credit income account).
+ * For journal: general entry with two or more lines (arbitrary debits/credits that balance).
  */
-export type TransactionType = 'expense' | 'transfer' | 'income';
+export type TransactionType = 'expense' | 'transfer' | 'income' | 'journal';
 
 export interface Transaction {
   id: string;

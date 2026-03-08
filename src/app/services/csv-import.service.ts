@@ -64,6 +64,22 @@ interface TransferCsvRow {
   Memo?: string;
 }
 
+interface JournalCsvRow {
+  EntryId?: string;
+  Date?: string;
+  Description?: string;
+  Account?: string;
+  Debit?: string;
+  Credit?: string;
+}
+
+/** One parsed journal entry (group of lines). */
+export interface ParsedJournalEntry {
+  date: string;
+  description: string;
+  lines: { accountId: string; debit: number; credit: number }[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -252,5 +268,52 @@ export class CsvImportService {
     }
 
     return result;
+  }
+
+  /**
+   * Parses a CSV file to journal entries. Columns: EntryId, Date, Description, Account, Debit, Credit.
+   * Rows with the same EntryId are grouped into one entry.
+   */
+  async parseCsvToJournalEntries(file: File): Promise<ParsedJournalEntry[]> {
+    const csvText = await this.readFileAsText(file);
+    const rows = parse<JournalCsvRow>(csvText, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    const byEntryId = new Map<string, { date: string; description: string; lines: { accountId: string; debit: number; credit: number }[] }>();
+
+    for (const row of rows) {
+      const entryId = (row.EntryId ?? '').trim() || '1';
+      const rawDate = (row.Date ?? '').trim();
+      const description = (row.Description ?? '').trim();
+      const accountId = (row.Account ?? '').trim();
+      const debit = this.parseAmount(row.Debit ?? '0');
+      const credit = this.parseAmount(row.Credit ?? '0');
+
+      if (!accountId) continue;
+
+      const debitVal = Number.isNaN(debit) ? 0 : Math.max(0, debit);
+      const creditVal = Number.isNaN(credit) ? 0 : Math.max(0, credit);
+      if (debitVal === 0 && creditVal === 0) continue;
+
+      const date = formatToMMDDYY(rawDate) || rawDate;
+
+      if (!byEntryId.has(entryId)) {
+        byEntryId.set(entryId, { date, description, lines: [] });
+      }
+      const entry = byEntryId.get(entryId)!;
+      if (!entry.date && date) entry.date = date;
+      if (!entry.description && description) entry.description = description;
+      entry.lines.push({ accountId, debit: debitVal, credit: creditVal });
+    }
+
+    return [...byEntryId.values()].filter((e) => {
+      if (e.lines.length < 2) return false;
+      const totalD = e.lines.reduce((s, l) => s + l.debit, 0);
+      const totalC = e.lines.reduce((s, l) => s + l.credit, 0);
+      return Math.abs(totalD - totalC) < 1e-6;
+    });
   }
 }
