@@ -19,6 +19,24 @@ export interface ParsedExpenseRow {
   account: string;
 }
 
+/** Parsed income row from CSV for import. */
+export interface ParsedIncomeRow {
+  date: string;
+  toAccountId: string;
+  incomeAccountId: string;
+  amount: number;
+  description: string;
+}
+
+/** Parsed transfer row from CSV for import. */
+export interface ParsedTransferRow {
+  date: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  description: string;
+}
+
 const DEFAULT_FROM = 'Todd W';
 
 interface CsvRow {
@@ -28,6 +46,22 @@ interface CsvRow {
   Category?: string;
   Amount?: string;
   Account?: string;
+}
+
+interface IncomeCsvRow {
+  Date?: string;
+  'To account'?: string;
+  'Income account'?: string;
+  Amount?: string;
+  Memo?: string;
+}
+
+interface TransferCsvRow {
+  Date?: string;
+  'From account'?: string;
+  'To account'?: string;
+  Amount?: string;
+  Memo?: string;
 }
 
 @Injectable({
@@ -134,6 +168,87 @@ export class CsvImportService {
       const date = formatToMMDDYY(rawDate);
 
       result.push({ date, to, from, category, amount, account });
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses a CSV file to income rows for import.
+   * Columns: Date, To account, Income account, Amount, Memo (optional).
+   */
+  async parseCsvToIncomeRows(file: File): Promise<ParsedIncomeRow[]> {
+    const csvText = await this.readFileAsText(file);
+    const rows = parse<IncomeCsvRow>(csvText, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    const result: ParsedIncomeRow[] = [];
+
+    for (const row of rows) {
+      const rawDate = row.Date?.trim() ?? '';
+      const toAccountId = (row['To account'] ?? '').trim();
+      const incomeAccountId = (row['Income account'] ?? '').trim();
+      const amountStr = row.Amount?.trim() ?? '';
+      const description = (row.Memo ?? '').trim();
+
+      if (!toAccountId || !incomeAccountId) continue;
+
+      const amount = this.parseAmount(amountStr);
+      if (Number.isNaN(amount) || amount <= 0) continue;
+
+      const date = formatToMMDDYY(rawDate);
+
+      result.push({
+        date,
+        toAccountId,
+        incomeAccountId,
+        amount,
+        description,
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses a CSV file to transfer rows for import.
+   * Columns: Date, From account, To account, Amount, Memo (optional).
+   */
+  async parseCsvToTransferRows(file: File): Promise<ParsedTransferRow[]> {
+    const csvText = await this.readFileAsText(file);
+    const rows = parse<TransferCsvRow>(csvText, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    const result: ParsedTransferRow[] = [];
+
+    for (const row of rows) {
+      const rawDate = row.Date?.trim() ?? '';
+      const fromAccountId = (row['From account'] ?? '').trim();
+      const toAccountId = (row['To account'] ?? '').trim();
+      const amountStr = row.Amount?.trim() ?? '';
+      const description = (row.Memo ?? '').trim();
+
+      if (!fromAccountId || !toAccountId) continue;
+      if (fromAccountId === toAccountId) continue;
+
+      const amount = this.parseAmount(amountStr);
+      if (Number.isNaN(amount) || amount <= 0) continue;
+
+      const date = formatToMMDDYY(rawDate);
+
+      result.push({
+        date,
+        fromAccountId,
+        toAccountId,
+        amount,
+        description,
+      });
     }
 
     return result;

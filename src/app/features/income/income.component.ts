@@ -6,24 +6,24 @@ import { MatTableModule } from '@angular/material/table';
 import { CsvExportService } from '../../services/csv-export.service';
 import { CsvImportService } from '../../services/csv-import.service';
 import { LedgerService } from '../../services/ledger.service';
-import { TransferFormDialogComponent } from '../expenses/transfer-form-dialog/transfer-form-dialog.component';
+import { IncomeFormDialogComponent } from './income-form-dialog/income-form-dialog.component';
 
 @Component({
-  selector: 'app-transfers',
+  selector: 'app-income',
   standalone: true,
   imports: [MatTableModule, MatButtonModule, MatDialogModule, MatIconModule],
-  templateUrl: './transfers.component.html',
-  styleUrl: './transfers.component.scss',
+  templateUrl: './income.component.html',
+  styleUrl: './income.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TransfersComponent {
+export class IncomeComponent {
   readonly ledger = inject(LedgerService);
   private readonly dialog = inject(MatDialog);
   private readonly csvExport = inject(CsvExportService);
   private readonly csvImport = inject(CsvImportService);
 
-  readonly transfers = this.ledger.transferView;
-  readonly displayedColumns = ['date', 'from', 'to', 'amount', 'description', 'actions'];
+  readonly incomeList = this.ledger.incomeView;
+  readonly displayedColumns = ['date', 'toAccount', 'incomeAccount', 'amount', 'description', 'actions'];
 
   private readonly importError = signal<string | null>(null);
   readonly error = this.importError.asReadonly();
@@ -33,18 +33,18 @@ export class TransfersComponent {
   }
 
   openAddDialog(): void {
-    this.dialog.open(TransferFormDialogComponent, { width: '400px' }).afterClosed().subscribe(() => {});
+    this.dialog.open(IncomeFormDialogComponent, { width: '400px' }).afterClosed().subscribe(() => {});
   }
 
   exportCsv(): void {
-    const rows = this.transfers().map((r) => ({
+    const rows = this.incomeList().map((r) => ({
       date: r.date,
-      fromAccountId: r.fromAccountId,
       toAccountId: r.toAccountId,
+      incomeAccountId: r.incomeAccountId,
       amount: r.amount,
       description: r.description ?? '',
     }));
-    this.csvExport.exportTransferToCsv(rows);
+    this.csvExport.exportIncomeToCsv(rows);
   }
 
   onFileSelected(event: Event): void {
@@ -53,26 +53,26 @@ export class TransfersComponent {
     if (!file) return;
     this.importError.set(null);
     this.csvImport
-      .parseCsvToTransferRows(file)
+      .parseCsvToIncomeRows(file)
       .then((rows) => {
-        let existing = this.ledger.transferView();
+        let existing = this.ledger.incomeView();
         for (const row of rows) {
           const exactMatch = existing.some(
             (e) =>
               e.date === row.date &&
-              e.fromAccountId === row.fromAccountId &&
               e.toAccountId === row.toAccountId &&
+              e.incomeAccountId === row.incomeAccountId &&
               Math.abs(e.amount - row.amount) < 1e-6
           );
           if (exactMatch) continue;
-          this.ledger.addTransfer(
-            row.fromAccountId,
+          this.ledger.addIncomeTransaction(
             row.toAccountId,
+            row.incomeAccountId,
             row.amount,
             row.date,
             row.description || undefined
           );
-          existing = this.ledger.transferView();
+          existing = this.ledger.incomeView();
         }
         input.value = '';
       })
@@ -82,8 +82,8 @@ export class TransfersComponent {
       });
   }
 
-  deleteTransfer(id: string): void {
-    if (confirm('Delete this transfer?')) {
+  deleteIncome(id: string): void {
+    if (confirm('Delete this income entry?')) {
       this.ledger.deleteTransaction(id);
     }
   }

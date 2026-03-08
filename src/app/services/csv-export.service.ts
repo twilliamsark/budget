@@ -3,6 +3,26 @@ import { Expense } from '../models';
 
 const CSV_HEADERS = ['Date', 'To', 'From', 'Category', 'Amount', 'Account'] as const;
 
+const INCOME_CSV_HEADERS = ['Date', 'To account', 'Income account', 'Amount', 'Memo'] as const;
+
+export interface IncomeCsvRow {
+  date: string;
+  toAccountId: string;
+  incomeAccountId: string;
+  amount: number;
+  description: string;
+}
+
+const TRANSFER_CSV_HEADERS = ['Date', 'From account', 'To account', 'Amount', 'Memo'] as const;
+
+export interface TransferCsvRow {
+  date: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  description: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -36,6 +56,64 @@ export class CsvExportService {
   exportToCsv(expenses: Expense[], filename: string = 'expenses.csv'): void {
     const csv = this.buildCsv(expenses);
     this.downloadCsv(csv, filename);
+  }
+
+  /**
+   * Builds a CSV string from income rows. Columns: Date, To account, Income account, Amount, Memo.
+   */
+  buildIncomeCsv(rows: IncomeCsvRow[]): string {
+    const header = INCOME_CSV_HEADERS.join(',');
+    const lines = rows.map((r) =>
+      [
+        this.escapeCsvField(r.date),
+        this.escapeCsvField(r.toAccountId),
+        this.escapeCsvField(r.incomeAccountId),
+        this.escapeCsvField(this.formatAmountPositive(r.amount)),
+        this.escapeCsvField(r.description ?? ''),
+      ].join(',')
+    );
+    return [header, ...lines].join('\n');
+  }
+
+  /**
+   * Exports the given income rows to a CSV file and triggers download.
+   */
+  exportIncomeToCsv(rows: IncomeCsvRow[], filename: string = 'income.csv'): void {
+    const csv = this.buildIncomeCsv(rows);
+    this.downloadCsv(csv, filename);
+  }
+
+  /**
+   * Builds a CSV string from transfer rows. Columns: Date, From account, To account, Amount, Memo.
+   */
+  buildTransferCsv(rows: TransferCsvRow[]): string {
+    const header = TRANSFER_CSV_HEADERS.join(',');
+    const lines = rows.map((r) =>
+      [
+        this.escapeCsvField(r.date),
+        this.escapeCsvField(r.fromAccountId),
+        this.escapeCsvField(r.toAccountId),
+        this.escapeCsvField(this.formatAmountPositive(r.amount)),
+        this.escapeCsvField(r.description ?? ''),
+      ].join(',')
+    );
+    return [header, ...lines].join('\n');
+  }
+
+  /**
+   * Exports the given transfer rows to a CSV file and triggers download.
+   */
+  exportTransferToCsv(rows: TransferCsvRow[], filename: string = 'transfers.csv'): void {
+    const csv = this.buildTransferCsv(rows);
+    this.downloadCsv(csv, filename);
+  }
+
+  private formatAmountPositive(amount: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(amount);
   }
 
   private rowToCsvLine(e: Expense): string {
