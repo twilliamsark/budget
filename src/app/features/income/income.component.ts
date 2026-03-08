@@ -23,13 +23,30 @@ export class IncomeComponent {
   private readonly csvImport = inject(CsvImportService);
 
   readonly incomeList = this.ledger.incomeView;
-  readonly displayedColumns = ['date', 'toAccount', 'incomeAccount', 'amount', 'description', 'actions'];
+  readonly displayedColumns = ['expand', 'date', 'toAccount', 'incomeAccount', 'amount', 'description', 'actions'] as const;
+
+  readonly expandedRowIds = signal<Set<string>>(new Set());
 
   private readonly importError = signal<string | null>(null);
   readonly error = this.importError.asReadonly();
 
   formatAmount(value: number): string {
     return `$${value.toFixed(2)}`;
+  }
+
+  isExpanded(row: { id: string }): boolean {
+    return this.expandedRowIds().has(row.id);
+  }
+
+  toggleExpanded(row: { id: string }): void {
+    const set = new Set(this.expandedRowIds());
+    if (set.has(row.id)) set.delete(row.id);
+    else set.add(row.id);
+    this.expandedRowIds.set(set);
+  }
+
+  getDetail(row: { id: string }) {
+    return this.ledger.getTransactionWithLines(row.id);
   }
 
   openAddDialog(): void {
