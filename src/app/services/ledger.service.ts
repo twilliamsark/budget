@@ -64,8 +64,8 @@ export class LedgerService {
         return {
           id: t.id,
           date: t.date,
-          fromAccountId: debitLine?.accountId ?? '',
-          toAccountId: creditLine?.accountId ?? '',
+          fromAccountId: creditLine?.accountId ?? '',
+          toAccountId: debitLine?.accountId ?? '',
           amount,
           description: t.description ?? '',
         };
@@ -207,14 +207,15 @@ export class LedgerService {
     this.addExpenseTransaction({ ...expense, possibleDuplicate: false });
   }
 
+  /** Transfer: credit from (source decreases), debit to (destination increases). */
   addTransfer(fromAccountId: string, toAccountId: string, amount: number, date: string, description?: string): void {
     if (amount <= 0) return;
     this.ensureAccount(fromAccountId, 'asset');
     this.ensureAccount(toAccountId, 'asset');
     const id = crypto.randomUUID();
     const tx: Transaction = { id, date, type: 'transfer', description };
-    const line1: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: fromAccountId, debit: amount, credit: 0 };
-    const line2: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: toAccountId, debit: 0, credit: amount };
+    const line1: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: fromAccountId, debit: 0, credit: amount };
+    const line2: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: toAccountId, debit: amount, credit: 0 };
     this.transactionsSignal.update((t) => [...t, tx]);
     this.linesSignal.update((l) => [...l, line1, line2]);
     this.persist();
