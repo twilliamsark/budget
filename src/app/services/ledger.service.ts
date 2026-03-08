@@ -98,6 +98,25 @@ export class LedgerService {
       .sort((a, b) => b.date.localeCompare(a.date));
   });
 
+  /** General journal entries (type === 'journal') with their lines. */
+  readonly journalView = computed(() => {
+    const transactions = this.transactionsSignal().filter((t) => t.type === 'journal');
+    const lines = this.linesSignal();
+    return transactions
+      .map((t) => {
+        const txLines = lines.filter((l) => l.transactionId === t.id);
+        const totalDebit = txLines.reduce((s, l) => s + l.debit, 0);
+        return {
+          id: t.id,
+          date: t.date,
+          description: t.description ?? '',
+          lines: txLines.map((l) => ({ accountId: l.accountId, debit: l.debit, credit: l.credit })),
+          totalDebit,
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  });
+
   constructor() {
     this.runMigrationIfNeeded();
     this.loadFromStorage();
@@ -212,6 +231,38 @@ export class LedgerService {
     const line2: JournalLine = { id: crypto.randomUUID(), transactionId: id, accountId: incomeAccountId, debit: 0, credit: amount };
     this.transactionsSignal.update((t) => [...t, tx]);
     this.linesSignal.update((l) => [...l, line1, line2]);
+    this.persist();
+  }
+
+  /** General journal entry: two or more lines, sum(debits) must equal sum(credits). */
+  addJournalEntry(
+    date: string,
+    lines: { accountId: string; debit: number; credit: number }[],
+    description?: string
+  ): void {
+    if (lines.length < 2) return;
+    const totalDebit = lines.reduce((s, l) => s + (l.debit ?? 0), 0);
+    const totalCredit = lines.reduce((s, l) => s + (l.credit ?? 0), 0);
+    if (Math.abs(totalDebit - totalCredit) > 1e-6) return;
+    for (const l of lines) {
+      const debit = Math.max(0, Number(l.debit) || 0);
+      const credit = Math.max(0, Number(l.credit) || 0);
+      if (debit > 0 || credit > 0) this.ensureAccount(l.accountId, 'asset');
+    }
+    const id = crypto.randomUUID();
+    const tx: Transaction = { id, date, type: 'journal', description };
+    const journalLines: JournalLine[] = lines
+      .filter((l) => (l.debit ?? 0) > 0 || (l.credit ?? 0) > 0)
+      .map((l) => ({
+        id: crypto.randomUUID(),
+        transactionId: id,
+        accountId: l.accountId,
+        debit: Math.max(0, Number(l.debit) || 0),
+        credit: Math.max(0, Number(l.credit) || 0),
+      }));
+    if (journalLines.length < 2) return;
+    this.transactionsSignal.update((t) => [...t, tx]);
+    this.linesSignal.update((l) => [...l, ...journalLines]);
     this.persist();
   }
 

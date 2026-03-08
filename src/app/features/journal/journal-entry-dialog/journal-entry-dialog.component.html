@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Add journal entry</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" id="journal-entry-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Date</mat-label>
+      <input matInput formControlName="date" placeholder="e.g. 1/21/26" />
+      @if (dateError) {
+        <mat-error>{{ dateError }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description (optional)</mat-label>
+      <input matInput formControlName="description" placeholder="Memo" />
+    </mat-form-field>
+
+    <div class="lines-header">
+      <h4>Lines (debits must equal credits)</h4>
+      <button mat-stroked-button type="button" (click)="addLine()">Add line</button>
+    </div>
+
+    <div formArrayName="lines" class="lines-list">
+      @for (line of lines.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="line-row">
+          <mat-form-field appearance="outline" class="account-field">
+            <mat-label>Account</mat-label>
+            <mat-select formControlName="accountId">
+              @for (acc of accounts; track acc.id) {
+                <mat-option [value]="acc.id">{{ acc.id }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="amount-field">
+            <mat-label>Debit</mat-label>
+            <input matInput type="text" formControlName="debit" placeholder="0.00" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="amount-field">
+            <mat-label>Credit</mat-label>
+            <input matInput type="text" formControlName="credit" placeholder="0.00" />
+          </mat-form-field>
+          <button mat-icon-button type="button" (click)="removeLine(i)" [disabled]="lines.length <= 2" aria-label="Remove line">
+            <mat-icon>remove_circle_outline</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <p class="totals">
+      Total debits: {{ totalDebit.toFixed(2) }} — Total credits: {{ totalCredit.toFixed(2) }}
+      @if (!isBalanced && (totalDebit > 0 || totalCredit > 0)) {
+        <span class="unbalanced"> (must be equal)</span>
+      }
+    </p>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" type="submit" form="journal-entry-form" [disabled]="!isBalanced">
+    Add entry
+  </button>
+</mat-dialog-actions>
